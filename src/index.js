@@ -1,10 +1,4 @@
-import React, {
-  forwardRef,
-  useRef,
-  useState,
-  createContext,
-  useContext,
-} from "react";
+import React, { forwardRef } from "react";
 import ReactDOM from "react-dom";
 // import { VariableSizeList as List } from "react-window";
 import { FixedSizeList as List } from "react-window";
@@ -15,54 +9,89 @@ import "./styles.css";
 const { totalColumnCount, totalRowCount, paginationNeeded, rows, columns } =
   data;
 
-const VirtualTableContext = createContext({ top: 0 });
-
 const getItemSize = () => 60;
 
-const innerElement = forwardRef(({ children, ...rest }, ref) => {
-  const { top } = useContext(VirtualTableContext);
-  console.log("🚀 ~ file: index.js ~ line 23 ~ innerElement ~ top", top);
-
+const outerElement = forwardRef(({ children, ...rest }, ref) => {
+  console.log("🚀 ~ file: index.js ~ line 45 ~ outerElement ~ rest", rest);
   return (
-    <div {...rest} ref={ref}>
-      <table
-        style={{ top, position: "absolute", width: "100%", borderSpacing: 0 }}
-      >
-        <thead>
-          <tr>
-            {columns.map((column, columnIndex) => {
-              const value = column.label;
-              return (
-                <th
-                  style={{ top: 0, position: "sticky", height: "78px" }}
-                  // style={{ height: "20px" }}
-                  key={columnIndex}
-                >
-                  {value}
-                </th>
-              );
-            })}
-          </tr>
-        </thead>
-        <tbody>{children}</tbody>
-      </table>
-    </div>
+    <section ref={ref} {...rest}>
+      {children}
+    </section>
   );
 });
 
+const innerElement = ({ children, ...rest }) => {
+  return (
+    <table
+      // style={{ top, position: "absolute", width: "100%", borderSpacing: 0 }}
+      {...rest}
+      style={{
+        ...rest.style,
+        tableLayout: "fixed",
+        borderCollapse: "collapse",
+      }}
+    >
+      <thead>
+        <tr>
+          {columns.map((column, columnIndex) => {
+            const value = column.label;
+            return (
+              <th
+                style={{
+                  top: 0,
+                  position: "sticky",
+                  height: "79px",
+                  zIndex: 2,
+                  border: "1px solid #d9dddd",
+                  width: "100px",
+                  padding: "0px",
+                }}
+                // style={{ height: "20px" }}
+                key={columnIndex}
+              >
+                {value}
+              </th>
+            );
+          })}
+        </tr>
+      </thead>
+      <tbody>{children}</tbody>
+    </table>
+  );
+};
+
 const Row = ({ index, style }) => {
   const row = rows[index];
-  const { height } = style;
 
   return (
-    <tr className={index % 2 ? "ListItemOdd" : "ListItemEven"}>
+    <tr
+    // style={style}
+    >
       {columns.map((column, columnIndex) => {
         const cell = row[column.id];
         const value = cell.qText;
 
         return (
-          <th style={{ height: height - 2 }} key={columnIndex}>
-            {value}
+          <th
+            className={index % 2 ? "ListItemOdd" : "ListItemEven"}
+            style={{
+              ...style,
+              top: `${80 * (index + 1)}px`,
+              // border: "1px solid #d9dddd",
+              width: "101px",
+              textAlign: "center",
+              verticalAlign: "middle",
+              left: `${101 * columnIndex}px`,
+              padding: "0px",
+              border: "0px",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              // height: 200px;
+            }}
+            key={columnIndex}
+          >
+            <div>{value}</div>
           </th>
         );
       })}
@@ -71,32 +100,19 @@ const Row = ({ index, style }) => {
 };
 
 const Example = () => {
-  const listRef = useRef();
-  const [top, setTop] = useState(0);
-
   return (
-    <VirtualTableContext.Provider value={{ top }}>
-      <List
-        innerElementType={innerElement}
-        className="List"
-        height={350}
-        itemCount={totalRowCount}
-        // itemSize={getItemSize}
-        itemSize={80}
-        width="100%"
-        onItemsRendered={(props) => {
-          const style =
-            listRef.current &&
-            listRef.current._getItemStyle(props.overscanStartIndex);
-          setTop(style && style.top);
-        }}
-        ref={(el) => {
-          listRef.current = el;
-        }}
-      >
-        {Row}
-      </List>
-    </VirtualTableContext.Provider>
+    <List
+      outerElementType={outerElement}
+      innerElementType={innerElement}
+      className="List"
+      height={350}
+      itemCount={totalRowCount}
+      // itemSize={getItemSize}
+      itemSize={80}
+      width={600}
+    >
+      {Row}
+    </List>
   );
 };
 

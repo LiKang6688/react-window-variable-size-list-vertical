@@ -1,4 +1,4 @@
-/* html {
+html {
   font-family: sans-serif;
   font-size: 12px;
 }
@@ -9,9 +9,9 @@
 
 .ListItemEven,
 .ListItemOdd {
-  display: flex;
+  /* display: flex; */
 }
 
 .ListItemEven {
   background-color: #f8f8f0;
-} */
+}
